@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "504668807494",
+    "firebase_url": "https://insta-chat-2fb0d.firebaseio.com",
+    "project_id": "insta-chat-2fb0d",
+    "storage_bucket": "insta-chat-2fb0d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:504668807494:android:05af7ee65b74b5e495c547",
+        "android_client_info": {
+          "package_name": "co.mcodes.insta_chat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "504668807494-3jrjpid14h224dsdtgslatr6epn54a3d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGI14-kibNSPKbjeigZLX6VjSz8d-KEFQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "504668807494-3jrjpid14h224dsdtgslatr6epn54a3d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
