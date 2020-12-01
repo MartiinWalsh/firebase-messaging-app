@@ -22,6 +22,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: ModalProgressHUD(
+        inAsyncCall: showSpinner,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
@@ -66,6 +67,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   color: Colors.blueAccent,
                   title: 'Register',
                   onPressed: () async {
+                    setState(() {
+                      showSpinner = true;
+                    });
                     try {
                       final newUser =
                           await _auth.createUserWithEmailAndPassword(
@@ -73,6 +77,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       if (newUser != null) {
                         Navigator.pushNamed(context, ChatScreen.id);
                       }
+                      setState(() {
+                        showSpinner = false;
+                      });
                     } catch (e) {
                       //TODO:
                       print(e);
