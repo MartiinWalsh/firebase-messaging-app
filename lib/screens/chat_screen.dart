@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash_chat/constants.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 final _firestore = FirebaseFirestore.instance;
+User loggedInUser;
 
 class ChatScreen extends StatefulWidget {
   static const String id = 'chat_screen';
@@ -12,8 +14,9 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  final messageTextController = TextEditingController();
   final _auth = FirebaseAuth.instance;
-  User loggedInUser;
+
   String messageText;
 
   @override
@@ -70,6 +73,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: <Widget>[
                   Expanded(
                     child: TextField(
+                      controller: messageTextController,
                       onChanged: (value) {
                         messageText = value;
                       },
@@ -78,6 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   FlatButton(
                     onPressed: () {
+                      messageTextController.clear();
                       _firestore.collection('messages').add(
                           {'text': messageText, 'sender': loggedInUser.email});
                     },
@@ -109,19 +114,25 @@ class MessagesStream extends StatelessWidget {
               ),
             );
           } else {
-            final messages = snapshot.data.docs;
+            final messages = snapshot.data.docs.reversed;
             List<MessageBubble> messageBubbles = [];
             for (var message in messages) {
               final messageData = message.data();
               final messageText = messageData['text'];
               final messageSender = messageData['sender'];
 
-              final messageBubble =
-                  MessageBubble(sender: messageSender, text: messageText);
+              final currentUser = loggedInUser.email;
+
+              final messageBubble = MessageBubble(
+                sender: messageSender,
+                text: messageText,
+                isMe: currentUser == messageSender,
+              );
               messageBubbles.add(messageBubble);
             }
             return Expanded(
                 child: ListView(
+                    reverse: true,
                     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
                     children: messageBubbles));
           }
@@ -132,24 +143,33 @@ class MessagesStream extends StatelessWidget {
 class MessageBubble extends StatelessWidget {
   final String sender;
   final String text;
-
-  MessageBubble({this.sender, this.text});
+  final bool isMe;
+  MessageBubble({this.sender, this.text, this.isMe});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(10),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment:
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Text(
             sender,
             style: TextStyle(fontSize: 12, color: Colors.black54),
           ),
           Material(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: isMe
+                  ? BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      bottomLeft: Radius.circular(30),
+                      bottomRight: Radius.circular(30))
+                  : BorderRadius.only(
+                      topRight: Radius.circular(30),
+                      bottomLeft: Radius.circular(30),
+                      bottomRight: Radius.circular(30)),
               elevation: 5,
-              color: Colors.lightBlueAccent,
+              color: isMe ? Colors.lightBlueAccent : Colors.grey,
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 child: Text(
