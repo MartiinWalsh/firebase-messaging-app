@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash_chat/constants.dart';
 import 'package:flutter/material.dart';
 
+final _firestore = FirebaseFirestore.instance;
+
 class ChatScreen extends StatefulWidget {
   static const String id = 'chat_screen';
   @override
@@ -10,7 +12,6 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
   User loggedInUser;
   String messageText;
@@ -30,18 +31,6 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     } catch (e) {}
   }
-
-  // void getMessages() async {
-  //   final databaseMessages = await _firestore.collection('messages').get();
-  //   // Calling getDocuments() is deprecated in favor of get() > per https://firebase.flutter.dev/docs/migration#firestore
-  //   // class uses "messages" instead of "databaseMessages"
-  //   print(databaseMessages);
-  //   for (var message in databaseMessages.docs) {
-  //     // "documents" deprecated to "docs"
-  //     print(message.data());
-  //     // above was print(message.data); BUT Getting a snapshots data via the data getter is now done via the data() method. per https://firebase.flutter.dev/docs/migration#firestore
-  //   }
-  // }
 
   void messagesStream() async {
     await for (var snapshot in _firestore.collection('messages').snapshots()) {
@@ -73,6 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            MessagesStream(),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
@@ -101,6 +91,73 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MessagesStream extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+        stream: _firestore.collection('messages').snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(
+                backgroundColor: Colors.lightBlueAccent,
+              ),
+            );
+          } else {
+            final messages = snapshot.data.docs;
+            List<MessageBubble> messageBubbles = [];
+            for (var message in messages) {
+              final messageData = message.data();
+              final messageText = messageData['text'];
+              final messageSender = messageData['sender'];
+
+              final messageBubble =
+                  MessageBubble(sender: messageSender, text: messageText);
+              messageBubbles.add(messageBubble);
+            }
+            return Expanded(
+                child: ListView(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+                    children: messageBubbles));
+          }
+        });
+  }
+}
+
+class MessageBubble extends StatelessWidget {
+  final String sender;
+  final String text;
+
+  MessageBubble({this.sender, this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            sender,
+            style: TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+          Material(
+              borderRadius: BorderRadius.circular(30),
+              elevation: 5,
+              color: Colors.lightBlueAccent,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                child: Text(
+                  text,
+                  style: TextStyle(color: Colors.white, fontSize: 15),
+                ),
+              )),
+        ],
       ),
     );
   }
